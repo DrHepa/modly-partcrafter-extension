@@ -15,13 +15,15 @@ class ContinuousIntegrationTests(unittest.TestCase):
             "windows-latest",
             'python: ["3.11", "3.12"]',
             "python-version: ${{ matrix.python }}",
+            "Install contract-test dependencies",
+            "numpy==1.26.4 Pillow==11.2.1",
             "python -m unittest discover",
             "python -m compileall",
             "contents: read",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, workflow)
-        self.assertNotIn("pip install", workflow)
+        self.assertNotIn("-r requirements-runtime.txt", workflow)
 
 
 if __name__ == "__main__":

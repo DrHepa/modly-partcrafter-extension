@@ -20,6 +20,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
+      - name: Install contract-test dependencies
+        run: python -m pip install --disable-pip-version-check numpy==1.26.4 Pillow==11.2.1
       - name: Compile extension sources
         run: python -m compileall -q setup.py generator.py tests
       - name: Run contract tests
