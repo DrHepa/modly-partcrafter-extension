@@ -1,0 +1,366 @@
+{
+  "id": "partcrafter",
+  "type": "model",
+  "name": "PartCrafter for Modly",
+  "displayName": "PartCrafter",
+  "version": "1.0.0",
+  "description": "Generate structured, separately editable 3D object parts or scene objects, with optional RMBG preprocessing, from one image using PartCrafter.",
+  "author": "DrHepa",
+  "source": "https://github.com/DrHepa/modly-partcrafter-extension",
+  "generator_class": "PartCrafterGenerator",
+  "vram_gb": 8,
+  "nodes": [
+    {
+      "id": "object",
+      "name": "PartCrafter Object",
+      "input": "image",
+      "output": "mesh",
+      "hf_repo": "wgsxm/PartCrafter",
+      "download_check": "vae/diffusion_pytorch_model.safetensors",
+      "params_schema": [
+        {
+          "id": "part_count_mode",
+          "label": "Part Count Mode",
+          "type": "select",
+          "default": "manual",
+          "options": [
+            {
+              "value": "manual",
+              "label": "Manual"
+            },
+            {
+              "value": "gemini",
+              "label": "Gemini Suggestion"
+            }
+          ],
+          "tooltip": "Choose the part count yourself or ask Gemini to infer it from the image."
+        },
+        {
+          "id": "num_parts",
+          "label": "Number of Parts",
+          "type": "int",
+          "default": 3,
+          "min": 1,
+          "max": 16,
+          "step": 1,
+          "show_if": {
+            "part_count_mode": "manual"
+          },
+          "tooltip": "Number of separate object parts to generate. Upstream supports 1 through 16."
+        },
+        {
+          "id": "part_model",
+          "label": "Gemini Part Model",
+          "type": "string",
+          "default": "gemini-3-flash-preview",
+          "show_if": {
+            "part_count_mode": "gemini"
+          },
+          "tooltip": "Gemini model used to suggest the part count. Requires GEMINI_API_KEY or GOOGLE_API_KEY."
+        },
+        {
+          "id": "style_transfer",
+          "label": "Objaverse Style Transfer",
+          "type": "select",
+          "default": "false",
+          "options": [
+            {
+              "value": "false",
+              "label": "Disabled"
+            },
+            {
+              "value": "true",
+              "label": "Gemini"
+            }
+          ],
+          "tooltip": "Optionally ask Gemini to restyle a real-world photo as an Objaverse-like asset render before 3D generation."
+        },
+        {
+          "id": "style_model",
+          "label": "Gemini Style Model",
+          "type": "string",
+          "default": "gemini-3.1-flash-image-preview",
+          "show_if": {
+            "style_transfer": "true"
+          },
+          "tooltip": "Gemini image model used for optional style transfer. Requires GEMINI_API_KEY or GOOGLE_API_KEY."
+        },
+        {
+          "id": "remove_background",
+          "label": "Remove Background",
+          "type": "select",
+          "default": "false",
+          "options": [
+            {
+              "value": "false",
+              "label": "Disabled"
+            },
+            {
+              "value": "true",
+              "label": "BRIA RMBG-1.4"
+            }
+          ],
+          "tooltip": "Run upstream PartCrafter background removal after optional style transfer and part suggestion. Download the separate PartCrafter RMBG node first."
+        },
+        {
+          "id": "num_tokens",
+          "label": "Tokens per Part",
+          "type": "int",
+          "default": 1024,
+          "min": 1,
+          "step": 1,
+          "tooltip": "Latent tokens generated for each part. Lower values reduce memory use; the upstream object default is 1024."
+        },
+        {
+          "id": "num_inference_steps",
+          "label": "Inference Steps",
+          "type": "int",
+          "default": 50,
+          "min": 1,
+          "step": 1,
+          "tooltip": "Number of denoising steps. The upstream default is 50."
+        },
+        {
+          "id": "guidance_scale",
+          "label": "Guidance Scale",
+          "type": "float",
+          "default": 7.0,
+          "step": 0.1,
+          "tooltip": "Image-conditioning guidance strength. The upstream default is 7.0."
+        },
+        {
+          "id": "max_num_expanded_coords",
+          "label": "Maximum Expanded Coordinates",
+          "type": "int",
+          "default": 1000000000,
+          "min": 0,
+          "step": 1,
+          "tooltip": "Safety limit for hierarchical mesh extraction. Use 0 to disable the limit, matching upstream semantics."
+        },
+        {
+          "id": "use_flash_decoder",
+          "label": "Flash Decoder",
+          "type": "select",
+          "default": "false",
+          "options": [
+            {
+              "value": "false",
+              "label": "Disabled"
+            },
+            {
+              "value": "true",
+              "label": "Enabled"
+            }
+          ],
+          "tooltip": "Use PartCrafter's flash VAE decoder path. The upstream CLI default is disabled."
+        },
+        {
+          "id": "seed",
+          "label": "Seed",
+          "type": "int",
+          "default": 0,
+          "step": 1,
+          "tooltip": "Random seed used by the PartCrafter pipeline. Negative seeds are accepted and remapped by PyTorch, matching upstream behavior."
+        },
+        {
+          "id": "render",
+          "label": "Turntable Rendering",
+          "type": "select",
+          "default": "false",
+          "options": [
+            {
+              "value": "false",
+              "label": "Disabled"
+            },
+            {
+              "value": "true",
+              "label": "Enabled"
+            }
+          ],
+          "tooltip": "Create the upstream 36-view color, normal, and input-comparison GIF/PNG turntables. Requires a working OpenGL offscreen context."
+        },
+        {
+          "id": "output_name",
+          "label": "Run Name",
+          "type": "string",
+          "default": "",
+          "tooltip": "Optional sanitized name for the run directory and returned GLB, analogous to upstream --tag."
+        }
+      ]
+    },
+    {
+      "id": "scene",
+      "name": "PartCrafter Scene",
+      "input": "image",
+      "output": "mesh",
+      "hf_repo": "wgsxm/PartCrafter-Scene",
+      "download_check": "vae/diffusion_pytorch_model.safetensors",
+      "params_schema": [
+        {
+          "id": "part_count_mode",
+          "label": "Object Count Mode",
+          "type": "select",
+          "default": "manual",
+          "options": [
+            {
+              "value": "manual",
+              "label": "Manual"
+            },
+            {
+              "value": "gemini",
+              "label": "Gemini Suggestion"
+            }
+          ],
+          "tooltip": "Choose the scene object count yourself or ask Gemini to infer it from the image."
+        },
+        {
+          "id": "scene_num_parts",
+          "label": "Number of Objects",
+          "type": "int",
+          "default": 6,
+          "min": 1,
+          "max": 8,
+          "step": 1,
+          "show_if": {
+            "part_count_mode": "manual"
+          },
+          "tooltip": "Number of separate scene objects to generate. Upstream supports 1 through 8."
+        },
+        {
+          "id": "part_model",
+          "label": "Gemini Count Model",
+          "type": "string",
+          "default": "gemini-3-flash-preview",
+          "show_if": {
+            "part_count_mode": "gemini"
+          },
+          "tooltip": "Gemini model used to suggest the scene object count. Requires GEMINI_API_KEY or GOOGLE_API_KEY."
+        },
+        {
+          "id": "style_transfer",
+          "label": "Objaverse Style Transfer",
+          "type": "select",
+          "default": "false",
+          "options": [
+            {
+              "value": "false",
+              "label": "Disabled"
+            },
+            {
+              "value": "true",
+              "label": "Gemini"
+            }
+          ],
+          "tooltip": "Optionally ask Gemini to restyle the source image before scene generation."
+        },
+        {
+          "id": "style_model",
+          "label": "Gemini Style Model",
+          "type": "string",
+          "default": "gemini-3.1-flash-image-preview",
+          "show_if": {
+            "style_transfer": "true"
+          },
+          "tooltip": "Gemini image model used for optional style transfer. Requires GEMINI_API_KEY or GOOGLE_API_KEY."
+        },
+        {
+          "id": "scene_num_tokens",
+          "label": "Tokens per Object",
+          "type": "int",
+          "default": 2048,
+          "min": 1,
+          "step": 1,
+          "tooltip": "Latent tokens generated for each scene object. The upstream scene default is 2048."
+        },
+        {
+          "id": "num_inference_steps",
+          "label": "Inference Steps",
+          "type": "int",
+          "default": 50,
+          "min": 1,
+          "step": 1,
+          "tooltip": "Number of denoising steps. The upstream default is 50."
+        },
+        {
+          "id": "guidance_scale",
+          "label": "Guidance Scale",
+          "type": "float",
+          "default": 7.0,
+          "step": 0.1,
+          "tooltip": "Image-conditioning guidance strength. The upstream default is 7.0."
+        },
+        {
+          "id": "max_num_expanded_coords",
+          "label": "Maximum Expanded Coordinates",
+          "type": "int",
+          "default": 1000000000,
+          "min": 0,
+          "step": 1,
+          "tooltip": "Safety limit for hierarchical mesh extraction. Use 0 to disable the limit, matching upstream semantics."
+        },
+        {
+          "id": "use_flash_decoder",
+          "label": "Flash Decoder",
+          "type": "select",
+          "default": "false",
+          "options": [
+            {
+              "value": "false",
+              "label": "Disabled"
+            },
+            {
+              "value": "true",
+              "label": "Enabled"
+            }
+          ],
+          "tooltip": "Use PartCrafter's flash VAE decoder path. The upstream CLI default is disabled."
+        },
+        {
+          "id": "seed",
+          "label": "Seed",
+          "type": "int",
+          "default": 0,
+          "step": 1,
+          "tooltip": "Random seed used by the PartCrafter pipeline. Negative seeds are accepted and remapped by PyTorch, matching upstream behavior."
+        },
+        {
+          "id": "render",
+          "label": "Turntable Rendering",
+          "type": "select",
+          "default": "false",
+          "options": [
+            {
+              "value": "false",
+              "label": "Disabled"
+            },
+            {
+              "value": "true",
+              "label": "Enabled"
+            }
+          ],
+          "tooltip": "Create the upstream 36-view color, normal, and input-comparison GIF/PNG turntables. Requires a working OpenGL offscreen context."
+        },
+        {
+          "id": "output_name",
+          "label": "Run Name",
+          "type": "string",
+          "default": "",
+          "tooltip": "Optional sanitized name for the run directory and returned GLB, analogous to upstream --tag."
+        }
+      ]
+    },
+    {
+      "id": "rmbg",
+      "name": "PartCrafter RMBG Preprocess",
+      "input": "image",
+      "output": "image",
+      "hf_repo": "briaai/RMBG-1.4",
+      "download_check": "model.safetensors",
+      "hf_include_prefixes": [
+        "config.json",
+        "model.safetensors"
+      ],
+      "params_schema": []
+    }
+  ]
+}

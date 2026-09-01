@@ -1,0 +1,3 @@
+Tencent Hunyuan is licensed under the Tencent Hunyuan Community License Agreement, Copyright © 2024 Tencent. All Rights Reserved. The trademark rights of “Tencent Hunyuan” are owned by Tencent or its affiliate.
+
+This repository does not bundle the PartCrafter source or model checkpoints. During setup, users retrieve the pinned PartCrafter source directly from its publisher. That source contains copied or adapted Tencent Hunyuan code and preserves the applicable agreement in src/models/transformers/partcrafter_transformer.py.
