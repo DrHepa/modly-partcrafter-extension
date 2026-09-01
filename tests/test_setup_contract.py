@@ -154,7 +154,7 @@ class SetupContractTests(unittest.TestCase):
                 ]
             )
             self.assertEqual(config.python_exe, Path(sys.executable))
-            self.assertEqual(config.ext_dir, ext_dir.resolve())
+            self.assertEqual(config.ext_dir, ext_dir)
             self.assertEqual(config.gpu_sm, 100)
             self.assertEqual(config.cuda_version, 128)
             self.assertEqual(config.accelerator, "cuda")
@@ -179,7 +179,7 @@ class SetupContractTests(unittest.TestCase):
                     ):
                         config = self.module.parse_setup_args(args)
                     self.assertEqual(config.python_exe, Path(sys.executable))
-                    self.assertEqual(config.ext_dir, ext_dir.resolve())
+                    self.assertEqual(config.ext_dir, ext_dir)
                     self.assertEqual(config.gpu_sm, 86)
                     self.assertEqual(config.cuda_version, expected_cuda)
                     self.assertEqual(config.platform, "linux")
